@@ -8,7 +8,10 @@ class Paddle:
         self.width = width
         self.height = height
         self.screen = screen
+        #feature property
         self.extra_speed = 0
+        self.point = 0
+        self.added_size = 0
         self.rect = pygame.Rect(x, y, width, height)
         self.dy = 0
 

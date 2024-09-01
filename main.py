@@ -104,8 +104,10 @@ class GameMain:
                                 if event.key == KEYDOWN or event.key == S:
                                     self.select_state = SIZE
                                 elif event.key == pygame.K_RETURN:
-                                    self.player1.extra_speed += 20
-                                    self.music_channel.play(self.sounds_list['upgrade'])
+                                    if (self.player1.extra_speed < 100 and self.player1.point >= 50):
+                                        self.player1.point -= 50
+                                        self.player1.extra_speed += 20
+                                        self.music_channel.play(self.sounds_list['upgrade'])
                         case 'size':
                             if event.type == pygame.KEYDOWN:
                                 if event.key == KEYDOWN or event.key == S:
@@ -113,8 +115,11 @@ class GameMain:
                                 elif event.key == KEYUP or event.key == W:
                                     self.select_state = SPEED
                                 elif event.key == ENTER:
-                                    self.player1.change_size(10)
-                                    self.music_channel.play(self.sounds_list['upgrade'])
+                                    if (self.player1.added_size < 5 and self.player1.point >= 200):
+                                        self.player1.change_size(20)
+                                        self.player1.point -= 200
+                                        self.player1.added_size += 1
+                                        self.music_channel.play(self.sounds_list['upgrade'])
 
                         case 'reset':
                             if event.type == pygame.KEYDOWN:
@@ -207,6 +212,8 @@ class GameMain:
                     else:
                         self.game_state = 'serve'
                         self.ball.Reset()
+                #Counting point
+                
             case 'done':
                 self.game_state = SERVE
                 self.ball.Reset()
@@ -226,18 +233,16 @@ class GameMain:
                     self.player1.dy = PADDLE_SPEED + self.player1.extra_speed
                 else:
                     self.player1.dy = 0
-                if self.player1_score >= 1:
-                    match self.game_state:
-                        case 'play':
+                match self.game_state:
+                    case 'play':
+                        if self.player1_score >= 1:
                             if self.ball.rect.y > self.player2.rect.y+30:
                                 self.player2.dy = PADDLE_SPEED
                             elif self.ball.rect.y < self.player2.rect.y+30:
                                 self.player2.dy = -PADDLE_SPEED
                             else:
                                 self.player2.dy = 0
-                else:
-                    match self.game_state:
-                        case 'play':
+                        else:
                             if self.ball.rect.y > self.player2.rect.y + 30:
                                 self.player2.dy = EASY_AI_SPEED
                             elif self.ball.rect.y < self.player2.rect.y + 30:
@@ -246,7 +251,8 @@ class GameMain:
                                 self.player2.dy = 0
                             if random.random() < 0.2:
                                 self.player2.dy = 200 if random.choice([True, False]) else -EASY_AI_SPEED
-
+                        self.player1.point += 0.01
+                        
             case 'player':
                 
                 key = pygame.key.get_pressed()            
@@ -287,6 +293,12 @@ class GameMain:
                     self.screen.blit(text, rect)
                 self.screen.blit(t_welcome, text_rect)
             case 'upgrade':
+                t_point = self.small_font.render("You have " + str(int(self.player1.point)) + " points", False, WHITE)
+                point_rect = t_point.get_rect(center=(WIDTH / 2, 30))
+                t_speed_qouta = self.small_font.render("Speed: 50 points each  " + str(int(5 - self.player1.extra_speed/20)) + "/5", False, WHITE)
+                speed_quota_rect = t_speed_qouta.get_rect(center=(WIDTH / 2, 60))
+                t_size_qouta = self.small_font.render("Size: 200 points each  " + str(int(5 - self.player1.added_size)) + "/5", False, WHITE)
+                size_quota_rect = t_speed_qouta.get_rect(center=(WIDTH / 2, 85))
                 for label, color in UPGRADE_PAGE[self.select_state].items():
                     text = self.large_font.render(label, False, color)
                     rect = text.get_rect(center=POSITIONS_4[index])
@@ -294,6 +306,9 @@ class GameMain:
                     texts[label] = (text, rect)
                 for text, rect in texts.values():
                     self.screen.blit(text, rect)
+                self.screen.blit(t_point, point_rect)
+                self.screen.blit(t_speed_qouta, speed_quota_rect)
+                self.screen.blit(t_size_qouta, size_quota_rect)
             case 'prepare':
                 t_game_mode = self.small_font.render("Select game mode!", False, (255, 255, 255))
                 game_mode_rect = t_game_mode.get_rect(center=(WIDTH / 2, 30))
@@ -306,29 +321,31 @@ class GameMain:
                     self.screen.blit(text, rect)
                 self.screen.blit(t_game_mode, game_mode_rect)
             case 'start':
-                t_press_enter_begin = self.small_font.render('Press Enter to begin!', False, (255, 255, 255))
+                t_press_enter_begin = self.small_font.render('Press Enter to begin!', False, WHITE)
                 text_rect = t_press_enter_begin.get_rect(center=(WIDTH / 2, 60))
                 self.screen.blit(t_press_enter_begin, text_rect)
             case 'serve':
-                t_serve = self.small_font.render("player" + str(self.serving_player) + "'s serve!", False, (255, 255, 255))
+                t_serve = self.small_font.render("player" + str(self.serving_player) + "'s serve!", False, WHITE)
                 text_rect = t_serve.get_rect(center=(WIDTH/2, 30))
-                t_esc = self.small_font.render("Press ESC back to Menu", False, (255,255,255))
+                t_esc = self.small_font.render("Press ESC back to Menu", False, WHITE)
                 esc_rect = t_esc.get_rect(center=(170, 15))
                 self.screen.blit(t_serve, text_rect)
                 self.screen.blit(t_esc, esc_rect)
-                t_enter_serve = self.small_font.render("Press Enter to serve!", False, (255, 255, 255))
+                t_enter_serve = self.small_font.render("Press Enter to serve!", False, WHITE)
                 text_rect = t_enter_serve.get_rect(center=(WIDTH / 2, 60))
                 self.screen.blit(t_enter_serve, text_rect)               
             case 'play':
-                
+                t_point = self.small_font.render("Point: " + str(int(self.player1.point)), False, YELLOW)
+                point_rect = t_point.get_rect(center=(WIDTH/2, HEIGHT - 30))
+                self.screen.blit(t_point, point_rect)
                 pass
                 
             case 'done':
-                t_win = self.large_font.render("player" + str(self.serving_player) + "'s wins!", False, (255, 255, 255))
+                t_win = self.large_font.render("player" + str(self.serving_player) + "'s wins!", False, WHITE)
                 text_rect = t_win.get_rect(center=(WIDTH / 2, 30))
                 self.screen.blit(t_win, text_rect)
 
-                t_restart = self.small_font.render("Press Enter to restart", False, (255, 255, 255))
+                t_restart = self.small_font.render("Press Enter to restart", False, WHITE)
                 text_rect = t_restart.get_rect(center=(WIDTH / 2, 70))
                 self.screen.blit(t_restart, text_rect)
         if self.game_state != PREPARE and self.game_state != UPGRADE and self.game_state != MENU: 
