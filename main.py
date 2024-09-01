@@ -1,9 +1,10 @@
-import pygame, sys, random, math
+import pygame, sys, random
 
 from constant import *
 from Ball import Ball
 from Paddle import Paddle
-from Shop import Shop
+
+
 class GameMain:
     def __init__(self):
         pygame.init()
@@ -14,23 +15,22 @@ class GameMain:
         self.music_channel.set_volume(0.2)
         
         self.sounds_list = {
-            'paddle_hit': pygame.mixer.Sound('Pong/sounds/paddle_hit.wav'),
-            'score': pygame.mixer.Sound('Pong/sounds/score.wav'),
-            'wall_hit': pygame.mixer.Sound('Pong/sounds/wall_hit.wav'),
-            'upgrade' : pygame.mixer.Sound('Pong/sounds/upgrade.mp3')
+            'paddle_hit': pygame.mixer.Sound('sounds/paddle_hit.wav'),
+            'score': pygame.mixer.Sound('sounds/score.wav'),
+            'wall_hit': pygame.mixer.Sound('sounds/wall_hit.wav'),
+            'upgrade': pygame.mixer.Sound('sounds/upgrade.mp3')
         }
 
         self.select_state = 'start'
         self.game_mode = PLAYER_VS_BOT
 
-        self.small_font = pygame.font.Font('Pong/font.ttf', 24)
-        self.large_font = pygame.font.Font('Pong/font.ttf', 48)
-        self.score_font = pygame.font.Font('Pong/font.ttf', 96)
+        self.small_font = pygame.font.Font('font.ttf', 24)
+        self.large_font = pygame.font.Font('font.ttf', 48)
+        self.score_font = pygame.font.Font('font.ttf', 96)
 
         self.player1_score = 0
         self.player2_score = 0
-        
-        self.shop = Shop(0,0)
+
         self.serving_player = 1
         self.winning_player = 0
         self.player1 = Paddle(self.screen, 30, 90, 15, PADDLE_SIZE)
@@ -40,7 +40,6 @@ class GameMain:
 
         self.game_state = 'menu'
 
-    
     def update(self, dt, events):
         for event in events:
             if event.type == pygame.QUIT:
@@ -67,10 +66,9 @@ class GameMain:
                                     self.select_state = SPEED 
                         case 'exit':
                             if event.type == pygame.KEYDOWN:
-                                if event.type == KEYUP or event.key == W:
+                                if event.key == KEYUP or event.key == W:
                                     self.select_state = UPGRADE
-                                elif event.type == ENTER:
-                                    pygame.display.quit()
+                                elif event.key == ENTER:
                                     pygame.quit()
                                     sys.exit()
                 case 'prepare':
@@ -117,8 +115,7 @@ class GameMain:
                                 elif event.key == ENTER:
                                     self.player1.change_size(10)
                                     self.music_channel.play(self.sounds_list['upgrade'])
-                                    
-                                    
+
                         case 'reset':
                             if event.type == pygame.KEYDOWN:
                                 if event.key == KEYDOWN or event.key == S:
@@ -126,7 +123,7 @@ class GameMain:
                                 elif event.key == KEYUP or event.key == W:
                                     self.select_state = SIZE
                                 elif event.key == ENTER:
-                                    self.shop.reset()
+                                    self.player1 = Paddle(self.screen, 30, 90, 15, PADDLE_SIZE)
                         case 'back':
                             if event.type == pygame.KEYDOWN:
                                 if event.key == KEYUP or event.key == W:
@@ -139,7 +136,6 @@ class GameMain:
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_RETURN:
                             self.game_state = SERVE
-                        
 
                 case 'serve':
                     if event.type == pygame.KEYDOWN:
@@ -160,15 +156,12 @@ class GameMain:
                 if self.ball.Collides(self.player1):
                     self.ball.dx = -self.ball.dx * 1.03  # reflect speed multiplier
                     self.ball.rect.x = self.player1.rect.x + 15
-                    
-                    print("ball dx:", self.ball.dx)
 
                     #ball goes down
                     if self.ball.dy < 0:
                         self.ball.dy = -random.uniform(30, 450)
                     else:
                         self.ball.dy = random.uniform(30, 450)
-                    print("ball dy:", self.ball.dy)
                     self.music_channel.play(self.sounds_list['paddle_hit'])
 
                 if self.ball.Collides(self.player2):
@@ -197,9 +190,9 @@ class GameMain:
                     self.serving_player = 1
                     self.player2_score += 1
                     self.music_channel.play(self.sounds_list['score'])
-                    if self.player2_score==WINNING_SCORE:
-                        self.winning_player=2
-                        self.game_state='done'
+                    if self.player2_score == WINNING_SCORE:
+                        self.winning_player = 2
+                        self.game_state = 'done'
                     else:
                         self.game_state = 'serve'
                         self.ball.Reset()
@@ -208,24 +201,23 @@ class GameMain:
                     self.serving_player = 2
                     self.player1_score += 1
                     self.music_channel.play(self.sounds_list['score'])
-                    if self.player1_score==WINNING_SCORE:
-                        self.winning_player=1
-                        self.game_state='done'
+                    if self.player1_score == WINNING_SCORE:
+                        self.winning_player = 1
+                        self.game_state = 'done'
                     else:
                         self.game_state = 'serve'
                         self.ball.Reset()
             case 'done':
                 self.game_state = SERVE
                 self.ball.Reset()
-                self.player1_score=0
-                self.player2_score=0
+                self.player1_score = 0
+                self.player2_score = 0
 
                 if self.winning_player == 1:
                     self.serving_player = 2
                 else:
                     self.serving_player = 1
         match self.game_mode:
-            #Doesn't finish yet
             case 'bot':
                 key = pygame.key.get_pressed()            
                 if key[W]:
@@ -234,18 +226,27 @@ class GameMain:
                     self.player1.dy = PADDLE_SPEED + self.player1.extra_speed
                 else:
                     self.player1.dy = 0
-                # if self.player1_score >= 1:
-                match self.game_state:
-                    case 'play':
-                        # if self.player2.rect.y <= HEIGHT and self.player2.rect.y >= 0:
-                        if self.ball.rect.y == self.player2.rect.y+30:
-                            self.player2.dy = 0
-                        if self.ball.dx > 0 and self.ball.rect.y > self.player2.rect.y+30:
-                            self.player2.dy = 600
-                        elif self.ball.dx > 0 and self.ball.rect.y < self.player2.rect.y+30:
-                            self.player2.dy = -600
-                            
-                                
+                if self.player1_score >= 1:
+                    match self.game_state:
+                        case 'play':
+                            if self.ball.rect.y > self.player2.rect.y+30:
+                                self.player2.dy = PADDLE_SPEED
+                            elif self.ball.rect.y < self.player2.rect.y+30:
+                                self.player2.dy = -PADDLE_SPEED
+                            else:
+                                self.player2.dy = 0
+                else:
+                    match self.game_state:
+                        case 'play':
+                            if self.ball.rect.y > self.player2.rect.y + 30:
+                                self.player2.dy = EASY_AI_SPEED
+                            elif self.ball.rect.y < self.player2.rect.y + 30:
+                                self.player2.dy = -EASY_AI_SPEED
+                            else:
+                                self.player2.dy = 0
+                            if random.random() < 0.2:
+                                self.player2.dy = 200 if random.choice([True, False]) else -EASY_AI_SPEED
+
             case 'player':
                 
                 key = pygame.key.get_pressed()            
@@ -271,107 +272,39 @@ class GameMain:
 
     def render(self):
         self.screen.fill((40, 45, 52))
+        texts = {}
+        index = 1
         match self.game_state:
             case 'menu':
                 t_welcome = self.small_font.render("Welcome to Pong!", False, (255, 255, 255))
                 text_rect = t_welcome.get_rect(center=(WIDTH / 2, 30))
-                match self.select_state:
-                    case 'start':
-                        start_text = self.large_font.render('Start', False, (247,247,73))
-                        start_rect = start_text.get_rect(center=(WIDTH / 2, HEIGHT/2 - 60))
-                        upgrade_text = self.large_font.render('Upgrade', False, (255,255,255))
-                        upgrade_rect = upgrade_text.get_rect(center=(WIDTH / 2, HEIGHT/2))
-                        exit_text = self.large_font.render('Exit', False, (255,255,255))
-                        exit_rect = exit_text.get_rect(center=(WIDTH / 2, HEIGHT/2 + 60))
-                    case 'upgrade':
-                        start_text = self.large_font.render('Start', False, (255,255,255))
-                        start_rect = start_text.get_rect(center=(WIDTH / 2, HEIGHT/2 - 60))
-                        upgrade_text = self.large_font.render('Upgrade', False, (247,247,73))
-                        upgrade_rect = upgrade_text.get_rect(center=(WIDTH / 2, HEIGHT/2))
-                        exit_text = self.large_font.render('Exit', False, (255,255,255))
-                        exit_rect = exit_text.get_rect(center=(WIDTH / 2, HEIGHT/2 + 60))
-                    case 'exit':
-                        start_text = self.large_font.render('Start', False, (255,255,255))
-                        start_rect = start_text.get_rect(center=(WIDTH / 2, HEIGHT/2 - 60))
-                        upgrade_text = self.large_font.render('Upgrade', False, (255,255,255))
-                        upgrade_rect = upgrade_text.get_rect(center=(WIDTH / 2, HEIGHT/2))
-                        exit_text = self.large_font.render('Exit', False, (247,247,73))
-                        exit_rect = exit_text.get_rect(center=(WIDTH / 2, HEIGHT/2 + 60))    
+                for label, color in MENU_PAGE[self.select_state].items():
+                    text = self.large_font.render(label, False, color)
+                    rect = text.get_rect(center=POSITIONS_3[index])
+                    index += 1
+                    texts[label] = (text, rect)
+                for text, rect in texts.values():
+                    self.screen.blit(text, rect)
                 self.screen.blit(t_welcome, text_rect)
-                self.screen.blit(start_text, start_rect)
-                self.screen.blit(upgrade_text, upgrade_rect)
-                self.screen.blit(exit_text, exit_rect)
             case 'upgrade':
-                match self.select_state:
-                    case 'speed':
-                        speed_text = self.large_font.render('Speed', False, (247,247,73))
-                        speed_rect = speed_text.get_rect(center=(WIDTH / 2, HEIGHT/2 - 90))
-                        size_text = self.large_font.render('Size', False, (255,255,255))
-                        size_rect = size_text.get_rect(center=(WIDTH / 2, HEIGHT/2 - 30))
-                        reset_text = self.large_font.render('Reset', False, (255,255,255))
-                        reset_rect = reset_text.get_rect(center=(WIDTH / 2, HEIGHT/2 + 30))
-                        back_text = self.large_font.render('Back to menu', False, (255,255,255))
-                        back_rect = back_text.get_rect(center=(WIDTH / 2, HEIGHT/2 + 90))   
-                    case 'size':
-                        speed_text = self.large_font.render('Speed', False, (255,255,255))
-                        speed_rect = speed_text.get_rect(center=(WIDTH / 2, HEIGHT/2 - 90))
-                        size_text = self.large_font.render('Size', False, (247,247,73))
-                        size_rect = size_text.get_rect(center=(WIDTH / 2, HEIGHT/2 - 30))
-                        reset_text = self.large_font.render('Reset', False, (255,255,255))
-                        reset_rect = reset_text.get_rect(center=(WIDTH / 2, HEIGHT/2 + 30))
-                        back_text = self.large_font.render('Back to menu', False, (255,255,255))
-                        back_rect = back_text.get_rect(center=(WIDTH / 2, HEIGHT/2 + 90))
-                    case 'reset':
-                        speed_text = self.large_font.render('Speed', False, (255,255,255))
-                        speed_rect = speed_text.get_rect(center=(WIDTH / 2, HEIGHT/2 - 90))
-                        size_text = self.large_font.render('Size', False, (255,255,255))
-                        size_rect = size_text.get_rect(center=(WIDTH / 2, HEIGHT/2 - 30))
-                        reset_text = self.large_font.render('Reset', False, (247,247,73))
-                        reset_rect = reset_text.get_rect(center=(WIDTH / 2, HEIGHT/2 + 30))
-                        back_text = self.large_font.render('Back to menu', False, (255,255,255))
-                        back_rect = back_text.get_rect(center=(WIDTH / 2, HEIGHT/2 + 90))
-                    case 'back':
-                        speed_text = self.large_font.render('Speed', False, (255,255,255))
-                        speed_rect = speed_text.get_rect(center=(WIDTH / 2, HEIGHT/2 - 90))
-                        size_text = self.large_font.render('Size', False, (255,255,255))
-                        size_rect = size_text.get_rect(center=(WIDTH / 2, HEIGHT/2 - 30))
-                        reset_text = self.large_font.render('Reset', False,  (255,255,255))
-                        reset_rect = reset_text.get_rect(center=(WIDTH / 2, HEIGHT/2 + 30))
-                        back_text = self.large_font.render('Back to menu', False, (247,247,73))
-                        back_rect = back_text.get_rect(center=(WIDTH / 2, HEIGHT/2 + 90))       
-                self.screen.blit(speed_text, speed_rect)
-                self.screen.blit(size_text, size_rect)
-                self.screen.blit(reset_text, reset_rect)
-                self.screen.blit(back_text, back_rect) 
+                for label, color in UPGRADE_PAGE[self.select_state].items():
+                    text = self.large_font.render(label, False, color)
+                    rect = text.get_rect(center=POSITIONS_4[index])
+                    index += 1
+                    texts[label] = (text, rect)
+                for text, rect in texts.values():
+                    self.screen.blit(text, rect)
             case 'prepare':
                 t_game_mode = self.small_font.render("Select game mode!", False, (255, 255, 255))
-                game_mode_rect = t_game_mode.get_rect(center=(WIDTH / 2, 30))    
-                match self.select_state:
-                    case 'bot':
-                        bot_text = self.large_font.render('Bot', False, (247,247,73))
-                        bot_rect = bot_text.get_rect(center=(WIDTH / 2, HEIGHT/2 - 60))
-                        friend_text = self.large_font.render('Play with Friend', False, (255,255,255))
-                        friend_rect = friend_text.get_rect(center=(WIDTH / 2, HEIGHT/2))
-                        back_text = self.large_font.render('Back to menu', False, (255,255,255))
-                        back_rect = back_text.get_rect(center=(WIDTH / 2, HEIGHT/2 + 60))   
-                    case 'player':
-                        bot_text = self.large_font.render('Bot', False, (255,255,255))
-                        bot_rect = bot_text.get_rect(center=(WIDTH / 2, HEIGHT/2 - 60))
-                        friend_text = self.large_font.render('Play with Friend', False, (247,247,73))
-                        friend_rect = friend_text.get_rect(center=(WIDTH / 2, HEIGHT/2 ))
-                        back_text = self.large_font.render('Back to menu', False, (255,255,255))
-                        back_rect = back_text.get_rect(center=(WIDTH / 2, HEIGHT/2 + 60))   
-                    case 'back':
-                        bot_text = self.large_font.render('Bot', False, (255,255,255))
-                        bot_rect = bot_text.get_rect(center=(WIDTH / 2, HEIGHT/2 - 60))
-                        friend_text = self.large_font.render('Play with Friend', False, (255,255,255))
-                        friend_rect = friend_text.get_rect(center=(WIDTH / 2, HEIGHT/2))
-                        back_text = self.large_font.render('Back to menu', False, (247,247,73))
-                        back_rect = back_text.get_rect(center=(WIDTH / 2, HEIGHT/2 + 60))       
+                game_mode_rect = t_game_mode.get_rect(center=(WIDTH / 2, 30))
+                for label, color in PREPARE_PAGE[self.select_state].items():
+                    text = self.large_font.render(label, False, color)
+                    rect = text.get_rect(center=POSITIONS_3[index])
+                    index += 1
+                    texts[label] = (text, rect)
+                for text, rect in texts.values():
+                    self.screen.blit(text, rect)
                 self.screen.blit(t_game_mode, game_mode_rect)
-                self.screen.blit(bot_text, bot_rect)
-                self.screen.blit(friend_text, friend_rect)
-                self.screen.blit(back_text, back_rect)              
             case 'start':
                 t_press_enter_begin = self.small_font.render('Press Enter to begin!', False, (255, 255, 255))
                 text_rect = t_press_enter_begin.get_rect(center=(WIDTH / 2, 60))
