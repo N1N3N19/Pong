@@ -2,14 +2,18 @@ import pygame
 WIDTH = 1280
 HEIGHT = 720
 
-PADDLE_SPEED = 800
-
+PLAYER_PADDLE_SPEED = 600
+PADDLE_SPEED = 600
+PADDLE_SIZE = 60
 #Game state
 MENU = 'menu'
 PREPARE = 'prepare'
 START = 'start'
 SERVE = 'serve'
 UPGRADE = 'upgrade'
+SPEED = 'speed'
+SIZE = 'size'
+RESET = 'reset'
 EXIT = 'exit'
 BACK = 'back'
 #GAME_MODE
